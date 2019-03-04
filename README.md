@@ -34,3 +34,4 @@
       compile project(':react-native-device-logs')
   	```
   
+Note: This library is an extension of 'react-native-device-log'.
