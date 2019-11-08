@@ -5,6 +5,8 @@ import {
     Text,
     StyleSheet,
     ListView,
+    FlatList,
+    Dimensions,
     Animated,
     TouchableOpacity,
     PixelRatio,
@@ -12,6 +14,7 @@ import {
     LayoutAnimation,
 } from "react-native";
 import InvertibleScrollView from "react-native-invertible-scroll-view";
+import Collapsible from 'react-native-collapsible'
 
 const PRIMARY_COLOR = "#5787cf";
 const SELECT_COLOR = "#FFFFCC";
@@ -99,7 +102,7 @@ class DebugListView extends debugListView {
                     <Text
                         style={[styles.logRowMessage, styles.logRowLevelLabel]}
                     >
-                        {`[${rowData.level.toUpperCase()}]`}
+                        {`[${rowData.message.toUpperCase()}]`}
                     </Text>
                     <Text
                         style={[
@@ -119,7 +122,55 @@ class DebugListView extends debugListView {
             </Animated.View>
         );
     }
-    
+
+    // _renderCollapsible = () => {
+    //     this.setState({
+    //         collapsed: !this.state.collapsed
+    //     })
+    // }
+
+    _renderLog(item) {
+        return (
+            <TouchableOpacity
+                onPress={() => this.setState({
+                    collapsed: !this.state.collapsed
+                })}
+            >
+                {this.state.collapsed
+                    ? <Text style={[styles.logRowMessage, styles.logRowLevelLabel]}>{`[${item.item.level.toUpperCase()}]`} </Text>
+                    : <Text style={[
+                        styles.logRowMessage,
+                        styles.logRowMessageMain,
+                        {
+                            backgroundColor: '#fffece',
+                            color: '#2e2e2e',
+                        }]}>
+                        {item.item.message}
+                    </Text>}
+                <Text style={styles.logRowMessage}>{item.item.timeStamp.format("HH:mm:ss")}</Text>
+            </TouchableOpacity>
+        )
+    }
+
+    _renderItem(item) {
+        let itemLayout = (item.item.level === "seperator")
+            ? <View style={{ alignItems: 'center' }}>
+                {
+                    <Text style={[
+                        styles.logRowMessage,
+                        styles.logRowMessageMain,
+                        styles.logRowMessageSeperator,
+                    ]}>
+                        {item.item.message} {'\n'}
+                        {item.item.timeStamp.format("YYYY-MM-DD HH:mm:ss")}
+                    </Text>
+                }
+            </View>
+            : this._renderLog(item)
+
+        return itemLayout
+    }
+
     render() {
         const { rows, ...props } = this.props;
         return (
@@ -148,21 +199,11 @@ class DebugListView extends debugListView {
                     </TouchableOpacity>
                 </View>
                 <View style={styles.listContainer}>
-                    <ListView
-                        renderSeparator={this._renderSeparator.bind(this)}
-                        keyboardShouldPersistTaps="always"
-                        automaticallyAdjustContentInsets={false}
-                        initialListSize={20}
-                        pageSize={20}
-                        renderScrollComponent={props =>
-                            <InvertibleScrollView
-                                {...props}
-                                inverted={this.props.inverted}
-                            />}
-                        enableEmptySections={true}
-                        ref={LISTVIEW_REF}
-                        dataSource={this.state.dataSource}
-                        renderRow={this._renderRow.bind(this)}
+                    <FlatList
+                        keyExtractor={item => item.id}
+                        data={this.props.rows}
+                        renderItem={(item, separators) => this._renderItem(item)}
+                        ItemSeparatorComponent={() => <View style={{ marginTop: 6, marginBottom: 6, height: 0.5, backgroundColor: '#29e', width: Dimensions.get('window').width }} />}
                         {...props}
                     />
                 </View>
