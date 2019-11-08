@@ -123,12 +123,6 @@ class DebugListView extends debugListView {
         );
     }
 
-    // _renderCollapsible = () => {
-    //     this.setState({
-    //         collapsed: !this.state.collapsed
-    //     })
-    // }
-
     _renderLog(item) {
         return (
             <TouchableOpacity
