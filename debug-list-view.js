@@ -4,7 +4,6 @@ import {
     View,
     Text,
     StyleSheet,
-    ListView,
     FlatList,
     Dimensions,
     Animated,
@@ -13,8 +12,6 @@ import {
     NativeModules,
     LayoutAnimation,
 } from "react-native";
-import InvertibleScrollView from "react-native-invertible-scroll-view";
-import Collapsible from 'react-native-collapsible'
 
 const PRIMARY_COLOR = "#5787cf";
 const SELECT_COLOR = "#FFFFCC";
