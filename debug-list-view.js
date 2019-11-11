@@ -4,14 +4,13 @@ import {
     View,
     Text,
     StyleSheet,
-    ListView,
+    FlatList,
+    Dimensions,
     Animated,
     TouchableOpacity,
     PixelRatio,
-    NativeModules,
     LayoutAnimation,
 } from "react-native";
-import InvertibleScrollView from "react-native-invertible-scroll-view";
 
 const PRIMARY_COLOR = "#5787cf";
 const SELECT_COLOR = "#FFFFCC";
@@ -20,6 +19,15 @@ const SECONDARY_COLOR = "#FFFFFF";
 const TEXT_COLOR = "#5787cf";
 const LISTVIEW_REF = "listview";
 class DebugListView extends debugListView {
+    constructor() {
+        super()
+
+        this.state = {
+            dataSource: [],
+            paused: false,
+            rows: [],
+        };
+    }
 
     onRowPress(sectionID, rowID) {
         let rowBefore = this.preparedRows[rowID];
@@ -42,8 +50,20 @@ class DebugListView extends debugListView {
             duration: 650,
         });
         this.setState({
-            dataSource: this.state.dataSource.cloneWithRows(this.preparedRows),
+            dataSource: this.state.dataSource.length !== 0 && this.state.dataSource.cloneWithRows(this.preparedRows),
         });
+    }
+
+    renderList(props) {
+        if (!this.state.paused) {
+            this.preparedRows = this.prepareRows(props.rows);
+            this.setState({
+                rows: props.rows,
+                dataSource: this.state.dataSource.length !== 0 && this.state.dataSource.cloneWithRows(
+                    this.preparedRows
+                ),
+            });
+        }
     }
 
     _renderSeperator(rowData, sectionID, rowID, highlightRow, animationStyle) {
@@ -99,7 +119,7 @@ class DebugListView extends debugListView {
                     <Text
                         style={[styles.logRowMessage, styles.logRowLevelLabel]}
                     >
-                        {`[${rowData.level.toUpperCase()}]`}
+                        {`[${rowData.message.toUpperCase()}]`}
                     </Text>
                     <Text
                         style={[
@@ -119,7 +139,49 @@ class DebugListView extends debugListView {
             </Animated.View>
         );
     }
-    
+
+    _renderLog(item) {
+        return (
+            <TouchableOpacity
+                onPress={() => this.setState({
+                    collapsed: !this.state.collapsed
+                })}
+            >
+                {this.state.collapsed
+                    ? <Text style={[styles.logRowMessage, styles.logRowLevelLabel]}>{`[${item.item.level.toUpperCase()}]`} </Text>
+                    : <Text style={[
+                        styles.logRowMessage,
+                        styles.logRowMessageMain,
+                        {
+                            backgroundColor: '#fffece',
+                            color: '#2e2e2e',
+                        }]}>
+                        {item.item.message}
+                    </Text>}
+                <Text style={styles.logRowMessage}>{item.item.timeStamp.format("HH:mm:ss")}</Text>
+            </TouchableOpacity>
+        )
+    }
+
+    _renderItem(item) {
+        let itemLayout = (item.item.level === "seperator")
+            ? <View style={{ alignItems: 'center' }}>
+                {
+                    <Text style={[
+                        styles.logRowMessage,
+                        styles.logRowMessageMain,
+                        styles.logRowMessageSeperator,
+                    ]}>
+                        {item.item.message} {'\n'}
+                        {item.item.timeStamp.format("YYYY-MM-DD HH:mm:ss")}
+                    </Text>
+                }
+            </View>
+            : this._renderLog(item)
+
+        return itemLayout
+    }
+
     render() {
         const { rows, ...props } = this.props;
         return (
@@ -148,21 +210,11 @@ class DebugListView extends debugListView {
                     </TouchableOpacity>
                 </View>
                 <View style={styles.listContainer}>
-                    <ListView
-                        renderSeparator={this._renderSeparator.bind(this)}
-                        keyboardShouldPersistTaps="always"
-                        automaticallyAdjustContentInsets={false}
-                        initialListSize={20}
-                        pageSize={20}
-                        renderScrollComponent={props =>
-                            <InvertibleScrollView
-                                {...props}
-                                inverted={this.props.inverted}
-                            />}
-                        enableEmptySections={true}
-                        ref={LISTVIEW_REF}
-                        dataSource={this.state.dataSource}
-                        renderRow={this._renderRow.bind(this)}
+                    <FlatList
+                        keyExtractor={item => item.id}
+                        data={this.props.rows}
+                        renderItem={(item, separators) => this._renderItem(item)}
+                        ItemSeparatorComponent={() => <View style={{ marginTop: 6, marginBottom: 6, height: 0.5, backgroundColor: '#29e', width: Dimensions.get('window').width }} />}
                         {...props}
                     />
                 </View>
