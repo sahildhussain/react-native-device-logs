@@ -9,7 +9,6 @@ import {
     Animated,
     TouchableOpacity,
     PixelRatio,
-    NativeModules,
     LayoutAnimation,
 } from "react-native";
 
@@ -20,6 +19,15 @@ const SECONDARY_COLOR = "#FFFFFF";
 const TEXT_COLOR = "#5787cf";
 const LISTVIEW_REF = "listview";
 class DebugListView extends debugListView {
+    constructor() {
+        super()
+
+        this.state = {
+            dataSource: [],
+            paused: false,
+            rows: [],
+        };
+    }
 
     onRowPress(sectionID, rowID) {
         let rowBefore = this.preparedRows[rowID];
@@ -42,8 +50,20 @@ class DebugListView extends debugListView {
             duration: 650,
         });
         this.setState({
-            dataSource: this.state.dataSource.cloneWithRows(this.preparedRows),
+            dataSource: this.state.dataSource.length !== 0 && this.state.dataSource.cloneWithRows(this.preparedRows),
         });
+    }
+
+    renderList(props) {
+        if (!this.state.paused) {
+            this.preparedRows = this.prepareRows(props.rows);
+            this.setState({
+                rows: props.rows,
+                dataSource: this.state.dataSource.length !== 0 && this.state.dataSource.cloneWithRows(
+                    this.preparedRows
+                ),
+            });
+        }
     }
 
     _renderSeperator(rowData, sectionID, rowID, highlightRow, animationStyle) {
