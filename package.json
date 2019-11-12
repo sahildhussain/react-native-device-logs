@@ -12,8 +12,6 @@
   "author": "5ahil",
   "license": "ISC",
   "dependencies": {
-    "react-native": "^0.41.2",
-    "react-native-windows": "0.41.0-rc.1",
     "react-native-device-log": "git://github.com/sahildhussain/react-native-device-log#master"
   },
   "repository": {
